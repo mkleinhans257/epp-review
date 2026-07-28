@@ -1,0 +1,10 @@
+{
+  "name": "epp-quarterly-review",
+  "version": "1.0.0",
+  "description": "Generates the Kleen-Rite EPP Quarterly Review PowerPoint from NetSuite data",
+  "private": true,
+  "dependencies": {
+    "pptxgenjs": "^3.12.0",
+    "exceljs": "^4.4.0"
+  }
+}
