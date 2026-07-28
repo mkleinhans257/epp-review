@@ -124,7 +124,7 @@ function buildDeck(d) {
 
     const tier = (xStart, hdrColor, title, desc, rows, totLabel, totVal) => {
       const TOP = 0.82;
-      const colW = [2.08, 1.22, 0.40, 0.85];
+      const colW = [1.90, 1.22, 0.58, 0.85];
 
       s.addShape(pres.shapes.RECTANGLE, { x: xStart, y: TOP, w: PW, h: 0.36, fill: { color: hdrColor }, line: { color: hdrColor } });
       s.addText(title, { x: xStart + 0.1, y: TOP, w: PW - 0.2, h: 0.36, fontSize: 12, bold: true, color: C.white, fontFace: FONT, valign: 'middle' });
@@ -151,6 +151,8 @@ function buildDeck(d) {
       s.addTable(tableRows, {
         x: xStart, y: TOP + 0.63, w: PW, colW, rowH: 0.46,
         border: { type: 'solid', color: 'EBEBEB', pt: 0.3 }, fontFace: FONT,
+        margin: [0.02, 0.05, 0.02, 0.05],   // tight padding - stops Rate wrapping
+        autoPage: false,
       });
 
       const tableBot = TOP + 0.63 + tableRows.length * 0.46;
