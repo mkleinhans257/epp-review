@@ -187,7 +187,132 @@ function buildDeck(d) {
       { x: 6.04, y: 5.2, w: 3.58, h: 0.36, fontSize: 8.5, color: C.white, fontFace: FONT, valign: 'middle' });
   }
 
-  // ===== SLIDE 4 - Product Opportunity =======================================
+
+  // ===== SLIDE 4 - Free Shipping Benefit =====================================
+  {
+    const s = pres.addSlide(); s.background = { color: C.off };
+    hdr(s, 'THE VALUE OF FREE SHIPPING',
+      `Every shipment ships free under the EPP program  |  ${d.dateFrom} - ${d.dateTo}`);
+
+    const shipPctOfRev = d.currTotal > 0 ? (d.shipFreight / d.currTotal * 100) : 0;
+    const per100       = d.currTotal > 0 ? (d.shipFreight / d.currTotal * 100) : 0;
+    const totalValue   = d.shipFreight + d.totalRebate;
+    const shipMultiple = d.totalRebate > 0 ? (d.shipFreight / d.totalRebate) : 0;
+
+    // Three headline cards
+    [
+      { v: money(d.shipFreight),   l: 'TOTAL SHIPPING ABSORBED', sub: 'paid by Kleen-Rite, not you', red: true },
+      { v: num(d.shipShipments),   l: 'SHIPMENTS COVERED',       sub: 'every one shipped free' },
+      { v: money(d.shipAvg),       l: 'AVERAGE PER SHIPMENT',    sub: 'typical freight cost' },
+    ].forEach((c, i) => {
+      const x = 0.28 + i * 3.18;
+      s.addShape(pres.shapes.RECTANGLE, { x, y: 0.82, w: 2.9, h: 1.0,
+        fill: { color: C.white }, line: { color: C.lgray, pt: 1 } });
+      s.addShape(pres.shapes.RECTANGLE, { x, y: 0.82, w: 2.9, h: 0.05,
+        fill: { color: C.red }, line: { color: C.red } });
+      s.addText(c.v, { x, y: 0.88, w: 2.9, h: 0.52, fontSize: c.red ? 22 : 20, bold: true,
+        color: c.red ? C.red : C.black, fontFace: FONT, align: 'center', valign: 'middle' });
+      s.addText(c.l, { x, y: 1.40, w: 2.9, h: 0.2, fontSize: 8, bold: true,
+        color: C.mgray, fontFace: FONT, align: 'center', charSpacing: 0.5 });
+      s.addText(c.sub, { x, y: 1.58, w: 2.9, h: 0.18, fontSize: 7.5,
+        color: 'BBBBBB', fontFace: FONT, align: 'center', italic: true });
+    });
+
+    // ---- Left panel: how the figure is built
+    const LX0 = 0.28, LW0 = 4.55, PY0 = 1.98;
+    s.addShape(pres.shapes.RECTANGLE, { x: LX0, y: PY0, w: LW0, h: 2.86,
+      fill: { color: C.white }, line: { color: C.lgray, pt: 1 } });
+    s.addShape(pres.shapes.RECTANGLE, { x: LX0, y: PY0, w: LW0, h: 0.34,
+      fill: { color: C.black }, line: { color: C.black } });
+    s.addText('HOW THIS IS CALCULATED', { x: LX0 + 0.12, y: PY0, w: LW0 - 0.24, h: 0.34,
+      fontSize: 10, bold: true, color: C.white, fontFace: FONT, valign: 'middle', charSpacing: 0.5 });
+
+    const rows = [
+      ['Shipments fulfilled in period', num(d.shipShipments)],
+      ['Average freight per shipment',  money(d.shipAvg)],
+      ['Total freight absorbed',        money(d.shipFreight)],
+      ['Your purchases this period',    money(d.currTotal)],
+      ['Shipping as % of purchases',    shipPctOfRev.toFixed(1) + '%'],
+    ];
+    let ry = PY0 + 0.34;
+    rows.forEach((r, i) => {
+      const last = i === rows.length - 1;
+      const bg = last ? C.redpale : (i % 2 === 0 ? 'F8F8F8' : C.white);
+      s.addShape(pres.shapes.RECTANGLE, { x: LX0, y: ry, w: LW0, h: 0.42,
+        fill: { color: bg }, line: { color: 'EBEBEB', pt: 0.2 } });
+      s.addText(r[0], { x: LX0 + 0.14, y: ry, w: 2.9, h: 0.42, fontSize: 9.5,
+        bold: last, color: last ? C.darkRed : C.black, fontFace: FONT, valign: 'middle' });
+      s.addText(r[1], { x: LX0 + 3.0, y: ry, w: LW0 - 3.14, h: 0.42, fontSize: 10,
+        bold: true, color: last ? C.darkRed : C.black, fontFace: FONT,
+        valign: 'middle', align: 'right' });
+      ry += 0.42;
+    });
+    s.addText('Orders that split across multiple shipments are covered on every one - ' +
+              'that is why shipments exceed order count.',
+      { x: LX0 + 0.14, y: ry + 0.04, w: LW0 - 0.28, h: 0.34, fontSize: 8,
+        color: C.mgray, fontFace: FONT, italic: true, wrap: true });
+
+    // ---- Right panel: total program value
+    const RX = 5.17, RW = 4.55;
+    s.addShape(pres.shapes.RECTANGLE, { x: RX, y: PY0, w: RW, h: 2.86,
+      fill: { color: C.white }, line: { color: C.lgray, pt: 1 } });
+    s.addShape(pres.shapes.RECTANGLE, { x: RX, y: PY0, w: RW, h: 0.34,
+      fill: { color: C.red }, line: { color: C.red } });
+    s.addText('TOTAL PROGRAM VALUE DELIVERED', { x: RX + 0.12, y: PY0, w: RW - 0.24, h: 0.34,
+      fontSize: 10, bold: true, color: C.white, fontFace: FONT, valign: 'middle', charSpacing: 0.5 });
+
+    // Proportional bars
+    const barMax = Math.max(d.shipFreight, d.totalRebate, 1);
+    const BAR_X  = RX + 1.55, BAR_MAXW = 2.35;
+    [
+      { label: 'Free Shipping', val: d.shipFreight,  color: C.red },
+      { label: 'Rebate Earned', val: d.totalRebate,  color: '888888' },
+    ].forEach((b, i) => {
+      const by = PY0 + 0.55 + i * 0.62;
+      const w  = Math.max((b.val / barMax) * BAR_MAXW, 0.06);
+      s.addText(b.label, { x: RX + 0.14, y: by, w: 1.35, h: 0.34, fontSize: 9.5,
+        bold: true, color: C.black, fontFace: FONT, valign: 'middle' });
+      s.addShape(pres.shapes.RECTANGLE, { x: BAR_X, y: by + 0.05, w: w, h: 0.24,
+        fill: { color: b.color }, line: { color: b.color } });
+      s.addText(money(b.val), { x: BAR_X, y: by, w: BAR_MAXW + 0.5, h: 0.34,
+        fontSize: 9, bold: true, color: C.black, fontFace: FONT,
+        valign: 'middle', align: 'right' });
+    });
+
+    // Total
+    const tY = PY0 + 1.86;
+    s.addShape(pres.shapes.LINE, { x: RX + 0.14, y: tY - 0.06, w: RW - 0.28, h: 0,
+      line: { color: C.lgray, pt: 0.75 } });
+    s.addShape(pres.shapes.RECTANGLE, { x: RX, y: tY, w: RW, h: 0.5,
+      fill: { color: C.redpale }, line: { color: C.redmid, pt: 0.75 } });
+    s.addText('Combined Value', { x: RX + 0.14, y: tY, w: 2.0, h: 0.5, fontSize: 11,
+      bold: true, color: C.darkRed, fontFace: FONT, valign: 'middle' });
+    s.addText(money(totalValue), { x: RX + 2.1, y: tY, w: RW - 2.24, h: 0.5,
+      fontSize: 18, bold: true, color: C.darkRed, fontFace: FONT,
+      valign: 'middle', align: 'right' });
+
+    if (shipMultiple >= 1.5) {
+      s.addText('Your free shipping benefit is ' + shipMultiple.toFixed(1) +
+                'x larger than your rebate.',
+        { x: RX + 0.14, y: tY + 0.54, w: RW - 0.28, h: 0.3, fontSize: 9,
+          color: C.dgray, fontFace: FONT, italic: true });
+    }
+
+    // ---- Bottom highlight
+    s.addShape(pres.shapes.RECTANGLE, { x: 0.28, y: 5.0, w: 9.44, h: 0.42,
+      fill: { color: C.black }, line: { color: C.black } });
+    s.addText('For every $100 you spend with Kleen-Rite, we absorb ' +
+              money(per100) + ' in freight so you do not pay a cent for shipping.',
+      { x: 0.44, y: 5.0, w: 9.12, h: 0.42, fontSize: 11, bold: true,
+        color: C.white, fontFace: FONT, valign: 'middle' });
+
+    s.addText('Freight figures are taken from Item Fulfillment records, so orders shipped ' +
+              'in multiple boxes are counted on each shipment.',
+      { x: 0.28, y: 5.46, w: 9.44, h: 0.2, fontSize: 7.5, color: C.mgray,
+        fontFace: FONT, italic: true });
+  }
+
+  // ===== SLIDE 5 - Product Opportunity =======================================
   {
     const s = pres.addSlide(); s.background = { color: C.off };
     hdr(s, 'PRODUCT OPPORTUNITY COMPARISON',
@@ -249,7 +374,7 @@ function buildDeck(d) {
       { x: 0.28, y: 5.35, w: 9.44, h: 0.2, fontSize: 7.5, color: C.mgray, fontFace: FONT, italic: true });
   }
 
-  // ===== SLIDE 5 - Progress & Opportunities ==================================
+  // ===== SLIDE 6 - Progress & Opportunities ==================================
   {
     const s = pres.addSlide(); s.background = { color: C.off };
     hdr(s, 'YOUR PROGRESS & OPPORTUNITIES', '');
@@ -262,8 +387,10 @@ function buildDeck(d) {
         body: `Your purchases of ${money(d.currTotal)} in this period compare to ${money(d.priorTotal)} in the prior year same period - a ${d.growthPct}% change. This reflects your ongoing operational investment and relationship with Kleen-Rite.` },
       { head: 'Rebate Program Fully Active',
         body: `You have earned ${money(d.totalRebate)} in rebates to date - ${money(d.revRebate)} (Tier 1 revenue) and ${money(d.growthRebate)} (Tier 2 growth). Your average order value is ${money(d.avgOrderValue)}. Final rebate is paid at year end.` },
-      { head: 'Comprehensive Product Program',
-        body: 'Your product program spans vac island, prep station, and wash bay categories - consistent reordering patterns show strong operational discipline.' },
+      { head: 'Free Shipping Is Your Largest Benefit',
+        body: `Kleen-Rite absorbed ${money(d.shipFreight)} in freight across ${num(d.shipShipments)} shipments this period - ` +
+              (d.currTotal > 0 ? (d.shipFreight / d.currTotal * 100).toFixed(1) + '% of everything you purchased' : 'every shipment covered') +
+              `. Combined with your rebate, that is ${money(d.shipFreight + d.totalRebate)} of value delivered.` },
       { head: 'Sample Group Comparison Available',
         body: `The sample group purchases ${d.oppCount} of the top 100 items in high volume not yet in your program. You also purchase ${d.custOnlyCount} items the sample group does not - showing a broad and specialized product mix.` },
     ];
@@ -298,7 +425,7 @@ function buildDeck(d) {
     });
   }
 
-  // ===== SLIDE 6 - Closing ===================================================
+  // ===== SLIDE 7 - Closing ===================================================
   {
     const s = pres.addSlide(); s.background = { color: C.black };
     s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.15, h: 5.625, fill: { color: C.red }, line: { color: C.red } });
@@ -517,6 +644,7 @@ module.exports = async (req, res) => {
       oppCount: 0, bothCount: 0, custOnlyCount: 0,
       topOppRows: [], topBothRows: [],
       allOppRows: [], allBothRows: [], allCustOnly: [],
+      shipShipments: 0, shipFreight: 0, shipAvg: 0,
     }, d || {});
 
     const pres = buildDeck(data);
