@@ -71,14 +71,21 @@ function buildDeck(d) {
     s.addText(d.customerName, { x: 0.38, y: 3.02, w: 8.5, h: 0.44, fontSize: 18, bold: true, color: C.white, fontFace: FONT });
     s.addText(`Customer #${d.customerNumber}`, { x: 0.38, y: 3.46, w: 8.5, h: 0.3, fontSize: 13, color: C.mgray, fontFace: FONT });
     s.addText(`Period: ${d.dateFrom} - ${d.dateTo}  |  Prior Year: ${d.priorFrom} - ${d.priorTo}`, { x: 0.38, y: 3.78, w: 8.5, h: 0.28, fontSize: 12, color: C.mgray, fontFace: FONT });
-    s.addText('Sales Trends  |  Rebate Results  |  Product Opportunity Analysis', { x: 0.38, y: 4.14, w: 8.5, h: 0.28, fontSize: 11, color: '666666', fontFace: FONT, italic: true });
+    if (d.rollupLabel) {
+      s.addShape(pres.shapes.RECTANGLE, { x: 0.38, y: 4.1, w: 3.5, h: 0.26,
+        fill: { color: '2A2A2A' }, line: { color: C.red, pt: 0.75 } });
+      s.addText(d.rollupLabel, { x: 0.38, y: 4.1, w: 3.5, h: 0.26, fontSize: 8.5,
+        bold: true, color: C.red, fontFace: FONT, align: 'center', valign: 'middle' });
+    }
+    s.addText('Sales Trends  |  Rebate Results  |  Product Opportunity Analysis', { x: 0.38, y: 4.44, w: 8.5, h: 0.28, fontSize: 11, color: '666666', fontFace: FONT, italic: true });
     s.addText(`Generated ${d.generatedDate}  |  Interim Report - Final rebate paid at year end`, { x: 0.38, y: 5.18, w: 8.5, h: 0.22, fontSize: 8, color: '555555', fontFace: FONT, italic: true });
   }
 
   // ===== SLIDE 2 - Sales Trend ===============================================
   {
     const s = pres.addSlide(); s.background = { color: C.off };
-    hdr(s, 'SALES TREND', `Current: ${d.dateFrom} - ${d.dateTo}   vs.   Prior Year: ${d.priorFrom} - ${d.priorTo}`);
+    hdr(s, 'SALES TREND', `Current: ${d.dateFrom} - ${d.dateTo}   vs.   Prior Year: ${d.priorFrom} - ${d.priorTo}` +
+      (d.rollupLabel ? '   |   ' + d.rollupLabel : ''));
 
     statCard(s, 0.28, 0.8, 2.15, 0.9, money(d.currTotal), 'CURRENT PERIOD', `${d.dateFrom}-${d.dateTo}`);
     statCard(s, 2.51, 0.8, 2.15, 0.9, money(d.priorTotal), 'PRIOR YEAR', `${d.priorFrom}-${d.priorTo}`);
@@ -446,18 +453,20 @@ function buildDeck(d) {
       s.addText(cs.label, { x, y: 3.15, w: 2.45, h: 0.28, fontSize: 8, color: 'AAAAAA', fontFace: FONT, align: 'center', valign: 'top' });
     });
 
-    s.addText('ITEM COMPARISON SUMMARY', { x: 0.38, y: 3.6, w: 8.5, h: 0.24, fontSize: 8.5, bold: true, color: '666666', fontFace: FONT, charSpacing: 2 });
+    // Second row: two boxes, widened to span the same width as the row above.
+    // Labels sit on the boxes themselves, so no section header here.
     [
-      [String(d.oppCount), 'Opportunity Items', 'CC0000', 'CC0000'],
-      [String(d.bothCount), 'Both Purchase', '888888', '666666'],
-      [String(d.custOnlyCount),
-        d.custOnlyCount === 0 ? `${d.shortName} Only\n(None this period)` : `${d.shortName} Only`,
-        '5B9BD5', '5B9BD5'],
+      [String(d.oppCount),   'Missed Items Opportunity'],
+      [money(d.shipFreight), 'Freight Savings'],
     ].forEach((b, i) => {
-      const x = 0.38 + i * 2.75;
-      s.addShape(pres.shapes.RECTANGLE, { x, y: 3.86, w: 2.45, h: 0.86, fill: { color: '222222' }, line: { color: b[3], pt: 0.75 } });
-      s.addText(b[0], { x, y: 3.89, w: 2.45, h: 0.5, fontSize: 22, bold: true, color: b[2], fontFace: FONT, align: 'center', valign: 'bottom' });
-      s.addText(b[1], { x, y: 4.39, w: 2.45, h: 0.28, fontSize: 7.5, color: 'AAAAAA', fontFace: FONT, align: 'center', valign: 'top' });
+      const w = 3.82;
+      const x = 0.38 + i * (w + 0.31);
+      s.addShape(pres.shapes.RECTANGLE, { x, y: 3.78, w: w, h: 0.9,
+        fill: { color: '222222' }, line: { color: C.red, pt: 0.75 } });
+      s.addText(b[0], { x, y: 3.82, w: w, h: 0.52, fontSize: 22, bold: true,
+        color: C.red, fontFace: FONT, align: 'center', valign: 'bottom' });
+      s.addText(b[1], { x, y: 4.34, w: w, h: 0.3, fontSize: 8.5,
+        color: 'AAAAAA', fontFace: FONT, align: 'center', valign: 'top' });
     });
 
     s.addText(`Data: NetSuite  |  Period: ${d.dateFrom}-${d.dateTo}  |  Generated ${d.generatedDate}  |  Interim Report - Final rebate paid at year end`,
@@ -645,6 +654,7 @@ module.exports = async (req, res) => {
       topOppRows: [], topBothRows: [],
       allOppRows: [], allBothRows: [], allCustOnly: [],
       shipShipments: 0, shipFreight: 0, shipAvg: 0,
+      rollupLabel: '',
     }, d || {});
 
     const pres = buildDeck(data);
